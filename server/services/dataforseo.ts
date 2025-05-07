@@ -92,11 +92,121 @@ export class DataForSEOService {
         
         // Prepare request payload for search_volume endpoint
         // Note: search_volume expects 'keywords' array instead of a single 'keyword'
+        
+        // Extract some common variations to include in the API request to get more data
+        const baseKeyword = cleanedKeyword;
+        
+        // Generate keyword variations for the API request
+        // This helps us get actual data for multiple related terms instead of just the main keyword
+        const keywordVariations = [
+          baseKeyword,
+          `best ${baseKeyword}`,
+          `${baseKeyword} review`,
+          `${baseKeyword} guide`,
+          `buy ${baseKeyword}`
+        ];
+        
+        // Extract generic terms to add to the request
+        const genericTerms = this.extractGenericTerms(baseKeyword);
+        
+        // Generate many more keyword variations based on common patterns
+        // These will all be real API requests, not synthetic data
+        const productVariations: string[] = [];
+        
+        // Create prefix-based variations (e.g., "best water softener")
+        const commonPrefixes = ['best', 'top', 'affordable', 'cheap', 'quality', 'premium', 
+                              'professional', 'commercial', 'residential', 'high-end', 
+                              'budget', 'luxury', 'efficient', 'modern', 'eco-friendly',
+                              'latest', 'newest', 'popular', 'recommended', 'reliable', 
+                              'durable', 'leading', 'trusted', 'advanced', 'high quality'];
+                              
+        // Create question-based variations (e.g., "how to install water softener")
+        const questionPrefixes = ['how to', 'what is', 'why use', 'when to', 'where to buy',
+                                'which', 'how much', 'how long', 'how does', 'who sells', 
+                                'is a', 'can a', 'best way to', 'benefits of', 'reviews for',
+                                'do i need', 'are', 'how to choose', 'installation of', 'how to fix',
+                                'how to maintain', 'is it worth', 'what size', 'when to replace', 'troubleshooting'];
+                                
+        // Create suffix-based variations (e.g., "water softener reviews")
+        const commonSuffixes = ['review', 'reviews', 'comparison', 'vs', 'guide', 'tips', 
+                              'problems', 'installation', 'maintenance', 'cost', 'price',
+                              'near me', 'for home', 'for business', 'system', 'model',
+                              'best brands', 'alternative', 'replacement', 'repair', 'service',
+                              'warranty', 'for sale', 'discount', 'online', 'parts', 'manual',
+                              'setup', 'troubleshooting', 'benefits', 'advantages'];
+        
+        // Add prefix variations for the main keyword and generic terms - use more terms
+        [...keywordVariations, ...genericTerms.slice(0, 5)].forEach(term => {
+          commonPrefixes.slice(0, 10).forEach(prefix => {
+            productVariations.push(`${prefix} ${term}`);
+          });
+        });
+        
+        // Add question-based variations for generic terms only (more natural) - use more terms
+        genericTerms.slice(0, 3).forEach(term => {
+          questionPrefixes.slice(0, 10).forEach(prefix => {
+            productVariations.push(`${prefix} ${term}`);
+          });
+        });
+        
+        // Add suffix variations for main keyword and generic terms - use more terms
+        [...keywordVariations, ...genericTerms.slice(0, 5)].forEach(term => {
+          commonSuffixes.slice(0, 10).forEach(suffix => {
+            productVariations.push(`${term} ${suffix}`);
+          });
+        });
+        
+        // Add year-based variations for trending/current searches
+        const currentYear = new Date().getFullYear();
+        const nextYear = currentYear + 1;
+        [...keywordVariations, ...genericTerms.slice(0, 3)].forEach(term => {
+          productVariations.push(`${term} ${currentYear}`);
+          productVariations.push(`${term} ${nextYear}`);
+          productVariations.push(`best ${term} ${currentYear}`);
+          productVariations.push(`top ${term} ${currentYear}`);
+        });
+        
+        // Combine common phrases with terms to create more variations
+        const commonPhrases = ['how to choose', 'best brands of', 'top rated', 'price comparison'];
+        genericTerms.slice(0, 3).forEach(term => {
+          commonPhrases.forEach(phrase => {
+            productVariations.push(`${phrase} ${term}`);
+          });
+        });
+        
+        // Combine all variations - use all keywords from all sources
+        const combinedKeywords = [
+          ...keywordVariations,
+          ...genericTerms,
+          ...productVariations
+        ];
+        
+        // Create multiple batches of keywords to make multiple API calls
+        // This will significantly increase our keyword count
+        const allUniqueKeywords = Array.from(new Set(combinedKeywords));
+        
+        // Split into batches of 50 keywords each (DataForSEO's recommended batch size)
+        // We'll use these to make multiple API calls
+        const keywordBatches = [];
+        for (let i = 0; i < allUniqueKeywords.length; i += 50) {
+          keywordBatches.push(allUniqueKeywords.slice(i, i + 50));
+        }
+        
+        // Make sure we have at least one batch, even if it's small
+        if (keywordBatches.length === 0) {
+          keywordBatches.push(allUniqueKeywords);
+        }
+        
+        // For the first API call, use just the first batch
+        const uniqueKeywords = keywordBatches[0];
+        
+        console.log(`Sending ${uniqueKeywords.length} keyword variations to DataForSEO API:`, uniqueKeywords);
+        
         const requestData = [{
-          keywords: [cleanedKeyword],
+          keywords: uniqueKeywords,
           language_code: "en",
           location_code: 2840, // United States
-          limit: 20
+          limit: 200 // Get up to 200 results per keyword (maximum allowed by DataForSEO)
         }];
 
         console.log("DataForSEO request payload:", JSON.stringify(requestData));
@@ -128,7 +238,7 @@ export class DataForSEOService {
 
         // Full response logging for debugging
         console.log("DataForSEO API full response:", JSON.stringify(response.data));
-
+        
         // Return fallback data if the API response doesn't have the expected format
         if (!response.data?.tasks || !Array.isArray(response.data.tasks) || response.data.tasks.length === 0) {
           console.log("No tasks in response, generating fallback keywords for:", keyword);
@@ -148,6 +258,55 @@ export class DataForSEOService {
         // Extract keyword data from response
         const keywordData: KeywordData[] = [];
         const results = response.data.tasks[0]?.result || [];
+        
+        // Now, let's process additional batches - Make API requests for other batches if they exist
+        // This is the key to getting hundreds of keywords
+        if (keywordBatches.length > 1) {
+          console.log(`Processing ${keywordBatches.length - 1} additional batches of keywords`);
+          
+          // Process each additional batch (skip the first as we already did it)
+          for (let batchIndex = 1; batchIndex < keywordBatches.length && batchIndex < 4; batchIndex++) {
+            try {
+              const batch = keywordBatches[batchIndex];
+              console.log(`Processing batch ${batchIndex} with ${batch.length} keywords`);
+              
+              // Create request for this batch
+              const batchRequestData = [{
+                keywords: batch,
+                language_code: "en",
+                location_code: 2840, // United States
+                limit: 200 // Maximum allowed
+              }];
+              
+              // Make API call for this batch
+              const batchResponse = await axios.post(
+                `${this.apiUrl}${endpoint}`,
+                batchRequestData,
+                { 
+                  auth,
+                  timeout: 15000,
+                  headers: {
+                    'Content-Type': 'application/json'
+                  }
+                }
+              );
+              
+              // Process the batch results and add to keyword data
+              if (batchResponse.data?.tasks?.[0]?.result) {
+                const batchResults = batchResponse.data.tasks[0].result;
+                console.log(`Batch ${batchIndex} returned ${batchResults.length} keywords`);
+                
+                // We'll merge these with the main results array for processing below
+                results.push(...batchResults);
+              }
+            } catch (err: any) {
+              console.error(`Error processing batch ${batchIndex}: ${err.message}`);
+              // Continue with next batch even if one fails
+            }
+          }
+          
+          console.log(`Total results after processing all batches: ${results.length} keywords`);
+        }
         
         if (results.length === 0) {
           console.log("No results in response, generating fallback keywords");
@@ -251,54 +410,257 @@ export class DataForSEOService {
               }
             }
             
-            // If we still don't have valid data, generate realistic fallbacks
+            // If we still don't have valid data from generic keywords, try common industry terms via direct API calls
             if (!hasValidData) {
-              console.log("All generic terms failed, using realistic fallback data");
+              console.log("Generic terms failed, trying direct industry term API requests");
               
-              // Create more realistic data for water treatment products
               const originalKeyword = keywordData[0].keyword;
-              const lowercaseKeyword = originalKeyword.toLowerCase();
               
-              // Estimate likely search volume based on product type
-              let estimatedVolume = 5000; // Default
+              // List of standard industry terms to try - these should have data in the DataForSEO API
+              const industryTerms = [
+                'water softener', 'water filter', 'water treatment', 'water conditioner',
+                'softener', 'water system', 'water purification',
+                'home appliance', 'home water', 'water quality'
+              ];
               
-              if (lowercaseKeyword.includes('water softener')) {
-                estimatedVolume = 12000;
-              } else if (lowercaseKeyword.includes('water filter')) {
-                estimatedVolume = 18000;
-              } else if (lowercaseKeyword.includes('salt free')) {
-                estimatedVolume = 6000;
-              } else if (lowercaseKeyword.includes('water')) {
-                estimatedVolume = 8000;
+              // Try each industry term as a direct API call
+              for (const industryTerm of industryTerms) {
+                try {
+                  console.log(`Making direct API call for industry term: ${industryTerm}`);
+                  
+                  // Make a direct API call for industry term
+                  const auth = {
+                    username: this.username,
+                    password: this.password
+                  };
+                  
+                  const simpleRequestData = [{
+                    keywords: [industryTerm],
+                    language_code: "en",
+                    location_code: 2840,
+                    limit: 50 // Get more keywords from the industry terms query
+                  }];
+                  
+                  const response = await axios.post(
+                    `${this.apiUrl}/v3/keywords_data/google/search_volume/live`,
+                    simpleRequestData,
+                    { 
+                      auth,
+                      timeout: 15000,
+                      headers: { 'Content-Type': 'application/json' }
+                    }
+                  );
+                  
+                  if (response.data?.tasks?.[0]?.result && 
+                      Array.isArray(response.data.tasks[0].result) && 
+                      response.data.tasks[0].result.length > 0) {
+                    
+                    const result = response.data.tasks[0].result[0];
+                    
+                    if (result.search_volume && result.search_volume > 0) {
+                      console.log(`Got valid industry term data from API: ${industryTerm} with volume: ${result.search_volume}`);
+                      
+                      // Extract trend data
+                      const trend = result.monthly_searches
+                        ? result.monthly_searches.map((monthData: any) => monthData.search_volume)
+                        : Array(12).fill(Math.round(result.search_volume));
+                      
+                      keywordData[0] = {
+                        keyword: originalKeyword,
+                        searchVolume: result.search_volume,
+                        cpc: result.cpc || 0,
+                        competition: result.competition || 0,
+                        competitionLevel: this.getCompetitionLevel(result.competition || 0),
+                        intent: this.determineIntent({ keyword: originalKeyword }),
+                        trend,
+                        difficulty: this.calculateKeywordDifficulty({
+                          search_volume: result.search_volume,
+                          competition: result.competition,
+                          cpc: result.cpc
+                        }),
+                        selected: false
+                      };
+                      
+                      hasValidData = true;
+                      break;
+                    }
+                  }
+                } catch (err: any) {
+                  console.error(`Error getting data for industry term ${industryTerm}: ${err.message}`);
+                }
               }
               
-              // Apply more realistic metrics
-              keywordData[0] = {
-                keyword: originalKeyword,
-                searchVolume: estimatedVolume,
-                cpc: 1.5 + Math.random() * 2,
-                competition: 0.3 + Math.random() * 0.4,
-                competitionLevel: "Medium",
-                intent: "Navigational",
-                trend: Array(12).fill(0).map(() => Math.floor(estimatedVolume * (0.5 + Math.random() * 1))),
-                difficulty: Math.floor(Math.random() * 30) + 40,
-                selected: false
-              };
+              // If all API attempts failed, use a very minimal placeholder to avoid breaking the UI
+              if (!hasValidData) {
+                console.error("CRITICAL: All DataForSEO API attempts failed to retrieve keyword data");
+                console.error("Please check DataForSEO API credentials and connection");
+                
+                // Use obvious placeholder with zero metrics to make it clear this is an API failure
+                keywordData[0] = {
+                  keyword: originalKeyword + " (API ERROR - CHECK DATAFORSEO CREDENTIALS)",
+                  searchVolume: 0,
+                  cpc: 0,
+                  competition: 0,
+                  competitionLevel: "Low", 
+                  intent: "Navigational",
+                  trend: Array(12).fill(0),
+                  difficulty: 0,
+                  selected: false
+                };
+              }
             }
           }
         }
         
-        // Add related keywords - since the search_volume endpoint only returns data for the exact keyword(s) we ask for,
-        // we need to add some variations to make it more useful for the content generation
+        // Get related keywords from DataForSEO API to expand our keyword list
+        // Use keyword suggestions endpoint to get a broader range of keywords
         if (keywordData.length > 0) {
-          // Get the main keyword
-          const mainKeyword = keywordData[0];
-          
-          // Generate related keywords based on the main keyword
-          const relatedKeywords = this.generateRelatedKeywords(mainKeyword);
-          
-          // Add the related keywords to the results
-          keywordData.push(...relatedKeywords);
+          try {
+            // Only proceed if we have at least one keyword with valid search volume
+            const validKeyword = keywordData.find(k => k.searchVolume && k.searchVolume > 0);
+            
+            if (validKeyword) {
+              // Use this keyword to get keyword suggestions from the API
+              console.log(`Getting API keyword suggestions for: ${validKeyword.keyword}`);
+              
+              const auth = {
+                username: this.username,
+                password: this.password
+              };
+              
+              // Use 3 different keyword suggestion approaches to maximize our keyword count
+              const suggestionsRequestData = [{
+                keyword: validKeyword.keyword,
+                language_code: "en",
+                location_code: 2840, // United States
+                limit: 100 // Get up to 100 keyword suggestions
+              }];
+              
+              // Make DataForSEO API call to get keyword suggestions
+              console.log("Fetching keyword suggestions from DataForSEO API");
+              const suggestionsEndpoint = `/v3/keywords_data/google/keywords_for_keywords/live`;
+              
+              try {
+                const suggestionsResponse = await axios.post(
+                  `${this.apiUrl}${suggestionsEndpoint}`,
+                  suggestionsRequestData,
+                  { 
+                    auth,
+                    timeout: 30000, // 30 second timeout
+                    headers: { 'Content-Type': 'application/json' }
+                  }
+                );
+                
+                // Process the suggestions response
+                if (suggestionsResponse.data?.tasks?.[0]?.result) {
+                  const suggestionsResults = suggestionsResponse.data.tasks[0].result;
+                  console.log(`Got ${suggestionsResults.length} keyword suggestions from API`);
+                  
+                  // Process each suggestion
+                  for (const suggestion of suggestionsResults) {
+                    // Only add if we don't already have this keyword
+                    if (!keywordData.some(k => k.keyword.toLowerCase() === suggestion.keyword.toLowerCase())) {
+                      const searchVolume = suggestion.search_volume || 0;
+                      const competition = suggestion.competition || 0;
+                      const cpc = suggestion.cpc || 0;
+                      
+                      // Create trend data from monthly_searches if available
+                      const trend = suggestion.monthly_searches
+                        ? suggestion.monthly_searches.map((monthData: any) => monthData.search_volume)
+                        : Array(12).fill(Math.round(searchVolume));
+                      
+                      // Calculate keyword difficulty
+                      const difficulty = this.calculateKeywordDifficulty({
+                        search_volume: searchVolume,
+                        competition,
+                        cpc
+                      });
+                      
+                      // Add to our keywords list
+                      keywordData.push({
+                        keyword: suggestion.keyword,
+                        searchVolume,
+                        cpc,
+                        competition,
+                        competitionLevel: this.getCompetitionLevel(competition),
+                        intent: this.determineIntent({ keyword: suggestion.keyword }),
+                        trend,
+                        difficulty,
+                        selected: false
+                      });
+                    }
+                  }
+                } else {
+                  console.log("No keyword suggestions found in API response");
+                }
+              } catch (suggestionsError: any) {
+                console.error(`Error getting keyword suggestions: ${suggestionsError.message}`);
+              }
+              
+              // Try a second API call with "related_keywords" endpoint
+              try {
+                console.log("Trying related keywords API endpoint for more keyword ideas");
+                const relatedEndpoint = `/v3/keywords_data/google/related_keywords/live`;
+                
+                const relatedResponse = await axios.post(
+                  `${this.apiUrl}${relatedEndpoint}`,
+                  suggestionsRequestData, // Use the same request data
+                  { 
+                    auth,
+                    timeout: 30000,
+                    headers: { 'Content-Type': 'application/json' }
+                  }
+                );
+                
+                // Process the related keywords response
+                if (relatedResponse.data?.tasks?.[0]?.result?.[0]?.keywords) {
+                  const relatedResults = relatedResponse.data.tasks[0].result[0].keywords;
+                  console.log(`Got ${relatedResults.length} related keywords from API`);
+                  
+                  // Process each related keyword
+                  for (const related of relatedResults) {
+                    // Only add if we don't already have this keyword
+                    if (!keywordData.some(k => k.keyword.toLowerCase() === related.keyword.toLowerCase())) {
+                      const searchVolume = related.search_volume || 0;
+                      const competition = related.competition || 0;
+                      const cpc = related.cpc || 0;
+                      
+                      // Create trend data from monthly_searches if available
+                      const trend = related.monthly_searches
+                        ? related.monthly_searches.map((monthData: any) => monthData.search_volume)
+                        : Array(12).fill(Math.round(searchVolume));
+                      
+                      // Calculate keyword difficulty
+                      const difficulty = this.calculateKeywordDifficulty({
+                        search_volume: searchVolume,
+                        competition,
+                        cpc
+                      });
+                      
+                      // Add to our keywords list
+                      keywordData.push({
+                        keyword: related.keyword,
+                        searchVolume,
+                        cpc,
+                        competition,
+                        competitionLevel: this.getCompetitionLevel(competition),
+                        intent: this.determineIntent({ keyword: related.keyword }),
+                        trend,
+                        difficulty,
+                        selected: false
+                      });
+                    }
+                  }
+                }
+              } catch (relatedError: any) {
+                console.error(`Error getting related keywords: ${relatedError.message}`);
+              }
+            } else {
+              console.log("No valid keywords found to use for suggestions");
+            }
+          } catch (suggestionsError: any) {
+            console.error(`Error processing keyword suggestions: ${suggestionsError.message}`);
+          }
         }
         
         // If no keywords were found, return fallback data
@@ -308,7 +670,7 @@ export class DataForSEOService {
         }
 
         // Sort keywords by relevance and search volume
-        const sortedKeywords = this.sortKeywordsByRelevance(keywordData);
+        let sortedKeywords = this.sortKeywordsByRelevance(keywordData);
         
         // Auto-select the most relevant keywords (up to 3)
         if (sortedKeywords.length > 0) {
@@ -351,6 +713,55 @@ export class DataForSEOService {
           }
         }
         
+        // Now add related keywords from API calls to get many more keyword variations
+        // This is a crucial step to increase our keyword count to 100-200
+        console.log(`Generating related keywords via API calls...`);
+        
+        try {
+          // Use the top 3 keywords with highest search volume to generate related terms
+          const topKeywords = sortedKeywords.slice(0, 3).filter(k => (k.searchVolume || 0) > 0);
+          let relatedKeywords: KeywordData[] = [];
+          
+          // Make API calls for related keywords (these will be entirely different keywords)
+          for (const topKeyword of topKeywords) {
+            try {
+              console.log(`Getting related keywords for: ${topKeyword.keyword}`);
+              // This call will make additional API requests to different endpoints
+              const moreKeywords = await this.generateRelatedKeywords(topKeyword);
+              console.log(`Found ${moreKeywords.length} related keywords for ${topKeyword.keyword}`);
+              relatedKeywords = [...relatedKeywords, ...moreKeywords];
+            } catch (err: any) {
+              console.error(`Error getting related keywords for ${topKeyword.keyword}: ${err.message}`);
+            }
+            
+            // Don't overwhelm the API with too many requests
+            if (relatedKeywords.length > 100) {
+              break;
+            }
+          }
+          
+          console.log(`Total related keywords found: ${relatedKeywords.length}`);
+          
+          // Add the related keywords to our existing keywords
+          // This should dramatically increase our keyword count
+          if (relatedKeywords.length > 0) {
+            // Remove any duplicates based on keyword text
+            const existingKeywordTexts = sortedKeywords.map(k => k.keyword.toLowerCase());
+            const uniqueRelatedKeywords = relatedKeywords.filter(
+              k => !existingKeywordTexts.includes(k.keyword.toLowerCase())
+            );
+            
+            console.log(`Adding ${uniqueRelatedKeywords.length} unique related keywords`);
+            
+            // Add the unique related keywords to our result set
+            sortedKeywords = [...sortedKeywords, ...uniqueRelatedKeywords];
+          }
+        } catch (relatedError: any) {
+          console.error(`Error processing related keywords: ${relatedError.message}`);
+          // Continue with what we have even if related keywords fail
+        }
+        
+        console.log(`Final keyword count: ${sortedKeywords.length}`);
         return sortedKeywords;
       } catch (apiError: any) {
         // If any error occurs during API call, log it and use fallback
@@ -381,24 +792,58 @@ export class DataForSEOService {
   }
 
   /**
-   * Clean a keyword string by removing special characters that cause API issues
+   * Clean a keyword string by removing special characters and noise words
    * @param input The raw keyword string
    * @returns Cleaned keyword string
    */
   private cleanKeywordString(input: string): string {
-    return input
-      .replace(/®|™|©/g, '') // Remove trademark/copyright symbols
+    console.log(`Cleaning keyword string: "${input}"`);
+    
+    // First, remove common symbols and noise
+    let cleaned = input
+      .replace(/®|™|©|℠/g, '') // Remove trademark/copyright symbols
       .replace(/\[.*?\]|\(.*?\)/g, '') // Remove text in brackets and parentheses
+      .replace(/[[\]{}|<>]/g, ' ') // Remove special characters
+      .replace(/^\d+\s*[.:)]\s*/, '') // Remove list numbers (e.g., "1. ", "2) ")
+      .replace(/\b\d{5,}\b/g, '') // Remove long numbers (likely SKUs, model numbers)
+      .replace(/\s+-\s+.*$/, '') // Remove everything after a dash with spaces around it
+      .replace(/\s*,\s*([a-z])/g, ' $1') // Convert commas to spaces when followed by lowercase (likely list items)
       .replace(/\s+/g, ' ') // Normalize spaces
       .trim(); // Remove leading/trailing whitespace
+      
+    // Next, check if there are any model numbers or variant codes that should be removed
+    // These often appear as alphanumeric codes that don't add search value
+    cleaned = cleaned
+      .replace(/\b[A-Z]\d{3,}\b/g, '') // Remove model numbers like "A1234"
+      .replace(/\b[A-Z]{2,}\d{2,}\b/g, '') // Remove codes like "AB123"
+      .replace(/\b\d{2,}[A-Z]{1,}\b/g, '') // Remove codes like "123A"
+      .replace(/\s+/g, ' ') // Normalize spaces again
+      .trim();
+      
+    console.log(`After cleaning: "${cleaned}"`);
+    
+    // Remove any excess words if the keyword is still very long
+    if (cleaned.length > 50) {
+      const words = cleaned.split(' ');
+      if (words.length > 7) {
+        // Keep only the first 7 words which typically contain the main product details
+        cleaned = words.slice(0, 7).join(' ');
+        console.log(`Truncated long keyword to: "${cleaned}"`);
+      }
+    }
+    
+    return cleaned;
   }
 
   /**
-   * Extract keywords from a product URL or use direct topic input
-   * @param input The URL or direct keyword/topic to use
+   * Extract meaningful keywords from a product URL or title
+   * This improved method focuses on pulling out the most relevant search terms
+   * @param input The URL or product title/topic to use
    * @returns The extracted keywords
    */
   private extractKeywordFromUrl(input: string): string {
+    console.log(`Extracting keywords from input: "${input}"`);
+    
     // First check if input is a URL or direct topic
     let extractedKeyword;
 
@@ -413,17 +858,68 @@ export class DataForSEOService {
         
         // Convert handle to keywords (replace hyphens with spaces)
         extractedKeyword = handle.replace(/-/g, ' ');
+        console.log(`Extracted from URL handle: "${extractedKeyword}"`);
       } catch (error) {
         // If URL parsing fails, just use the input
         extractedKeyword = input;
+        console.log(`URL parsing failed, using raw input: "${extractedKeyword}"`);
       }
     } else {
       // If it's not a URL, use the input directly
       extractedKeyword = input;
+      console.log(`Using direct input as keyword: "${extractedKeyword}"`);
     }
 
-    // Clean the keyword before returning
-    return this.cleanKeywordString(extractedKeyword);
+    // Special case: Sometimes we get product titles that are very long and specific
+    // Extract the most relevant parts to use as keyword
+    if (extractedKeyword.length > 30) {
+      console.log(`Long keyword detected (${extractedKeyword.length} chars), extracting core terms...`);
+      
+      // Remove common product identifiers and model numbers that don't make good search keywords
+      // e.g. "(Model: ABC123)" or "- XYZ456"
+      extractedKeyword = extractedKeyword
+        .replace(/\s*[-–—]\s*[A-Z0-9]{3,8}\b/g, '') // Remove model numbers after dashes
+        .replace(/\bmodel[:\s]+[A-Z0-9\-]{3,10}\b/i, '') // Remove model numbers with "model:" prefix
+        .replace(/\b(?:model|type|item|sku|part|size|style)\b[:\s]+[\w\d\-]{3,10}\b/gi, '') // Remove various product identifiers
+        .replace(/\b[A-Z0-9]{2,3}[-–—][A-Z0-9]{3,6}\b/g, '') // Remove formatted model numbers like "AB-12345"
+        .replace(/\([^)]*\)/g, '') // Remove text in parentheses
+        .replace(/\sby\s[\w\s]+$/i, ''); // Remove "by [Brand]" at the end
+      
+      // Extract core product terms (the first 3-5 words usually contain the key product terms)
+      const words = extractedKeyword.split(/\s+/);
+      
+      if (words.length > 5) {
+        // Get the most likely core product terms
+        // For water products, look for specific product category indicators
+        const waterProductIndex = words.findIndex(word => 
+          word.toLowerCase().includes('water') || 
+          word.toLowerCase().includes('filter') || 
+          word.toLowerCase().includes('softener')
+        );
+        
+        // If we found water-related terms, use them as central point
+        if (waterProductIndex >= 0) {
+          // Get a few words before and after the water term
+          const startIndex = Math.max(0, waterProductIndex - 1);
+          const endIndex = Math.min(words.length, waterProductIndex + 3);
+          const coreTerms = words.slice(startIndex, endIndex);
+          
+          // Join the core terms back together
+          extractedKeyword = coreTerms.join(' ');
+          console.log(`Extracted water-related core terms: "${extractedKeyword}"`);
+        } else {
+          // Default: just use the first 3-4 words which typically contain the main product type
+          extractedKeyword = words.slice(0, 4).join(' ');
+          console.log(`Extracted first 4 words as core terms: "${extractedKeyword}"`);
+        }
+      }
+    }
+
+    // Apply final cleaning to the keyword
+    const cleanedKeyword = this.cleanKeywordString(extractedKeyword);
+    console.log(`Final cleaned keyword: "${cleanedKeyword}"`);
+    
+    return cleanedKeyword;
   }
 
   /**
@@ -509,19 +1005,64 @@ export class DataForSEOService {
     // Split into individual words
     const words = normalizedInput.split(' ');
     
-    // Common product category names to look for
-    const categoryTerms = [
-      'water softener', 'water conditioner', 'softener', 'conditioner',
-      'jacket', 'coat', 'sweater', 'shoes', 'boots', 'pants', 'jeans',
-      'laptop', 'computer', 'phone', 'smartphone', 'tablet', 'monitor',
-      'camera', 'headphones', 'earbuds', 'speaker', 'tv', 'television',
-      'furniture', 'chair', 'table', 'desk', 'sofa', 'couch', 'bed',
-      'appliance', 'refrigerator', 'fridge', 'dishwasher', 'washer', 'dryer',
-      'tool', 'drill', 'saw', 'hammer', 'screwdriver'
-    ];
+    // Build an expanded set of category keywords for various industries
+    // This helps us generate high-quality API queries that are likely to return data
+    const categoryKeywords = {
+      // Water treatment keywords
+      waterTreatment: [
+        'water softener', 'water conditioner', 'water filter', 'water purifier', 'water system',
+        'water treatment', 'water purification', 'softener', 'conditioner', 'water filtration',
+        'water system', 'water quality', 'reverse osmosis', 'deionization', 'water testing',
+        'well water', 'city water', 'hard water', 'soft water', 'iron filter', 'salt free'
+      ],
+      
+      // Clothing and apparel
+      clothing: [
+        'jacket', 'coat', 'sweater', 'shoes', 'boots', 'pants', 'jeans', 'shirt', 't-shirt',
+        'hoodie', 'sweatshirt', 'dress', 'skirt', 'hat', 'cap', 'beanie', 'gloves', 'socks',
+        'underwear', 'activewear', 'sportswear', 'workout clothes', 'gym clothes', 'shorts'
+      ],
+      
+      // Electronics
+      electronics: [
+        'laptop', 'computer', 'phone', 'smartphone', 'tablet', 'monitor', 'tv', 'television',
+        'camera', 'headphones', 'earbuds', 'speaker', 'smart watch', 'gaming console', 'keyboard',
+        'mouse', 'router', 'modem', 'printer', 'scanner', 'microphone', 'charger', 'power bank'
+      ],
+      
+      // Home goods and furniture
+      home: [
+        'furniture', 'chair', 'table', 'desk', 'sofa', 'couch', 'bed', 'mattress', 'dresser',
+        'bookshelf', 'shelf', 'cabinet', 'wardrobe', 'nightstand', 'ottoman', 'coffee table',
+        'dining table', 'bedding', 'towels', 'curtains', 'blinds', 'rug', 'carpet', 'lamp'
+      ],
+      
+      // Appliances
+      appliances: [
+        'appliance', 'refrigerator', 'fridge', 'dishwasher', 'washer', 'dryer', 'microwave',
+        'oven', 'stove', 'range', 'cooktop', 'blender', 'mixer', 'toaster', 'coffee maker',
+        'vacuum', 'air purifier', 'humidifier', 'dehumidifier', 'air conditioner', 'heater'
+      ],
+      
+      // Tools
+      tools: [
+        'tool', 'drill', 'saw', 'hammer', 'screwdriver', 'wrench', 'pliers', 'level', 'tape measure',
+        'power tool', 'lawn mower', 'trimmer', 'generator', 'battery', 'gardening tools', 'yard tools'
+      ],
+      
+      // Outdoor and sports
+      outdoor: [
+        'grill', 'bbq', 'tent', 'camping', 'hiking', 'backpack', 'fishing', 'boat', 'bike', 'bicycle',
+        'scooter', 'helmet', 'kayak', 'paddle', 'golf', 'basketball', 'football', 'baseball', 'tennis',
+        'snowboard', 'ski', 'skateboard', 'surfboard', 'wetsuit'
+      ]
+    };
+    
+    // Flatten all categories into a single array for initial search
+    const allCategories = Object.values(categoryKeywords).flat();
     
     // Check for category terms in the product name
-    for (const category of categoryTerms) {
+    for (const category of allCategories) {
       if (normalizedInput.includes(category)) {
         terms.push(category);
       }
@@ -543,18 +1084,87 @@ export class DataForSEOService {
     }
     
     // Add single words that might be meaningful (exclude common stop words)
-    const stopWords = ['the', 'and', 'or', 'for', 'with', 'in', 'on', 'at', 'to', 'a', 'an'];
+    const stopWords = ['the', 'and', 'or', 'for', 'with', 'in', 'on', 'at', 'to', 'a', 'an', 'by', 'is', 'it', 'of', 'from'];
     for (const word of words) {
       if (word.length > 3 && !stopWords.includes(word) && !terms.some(term => term.includes(word))) {
         terms.push(word);
       }
     }
     
-    // If no specific terms found or this is a water-related product, 
-    // use some generic terms from the product type - water softeners need special handling
-    // as they often have very specific product names with little search volume
-    if (terms.length === 0 || normalizedInput.includes('water')) {
-      if (normalizedInput.includes('water')) {
+    // Determine which category this product likely belongs to
+    let categoryType: keyof typeof categoryKeywords | null = null;
+    
+    // Check for water treatment products first (primary focus of the app)
+    if (normalizedInput.includes('water') || 
+        normalizedInput.includes('softener') || 
+        normalizedInput.includes('conditioner') || 
+        normalizedInput.includes('filter')) {
+      categoryType = 'waterTreatment';
+    } 
+    // Check for clothing products
+    else if (normalizedInput.includes('jacket') || 
+             normalizedInput.includes('coat') || 
+             normalizedInput.includes('shirt') || 
+             normalizedInput.includes('pant') || 
+             normalizedInput.includes('shoe') || 
+             normalizedInput.includes('boot')) {
+      categoryType = 'clothing';
+    }
+    // Check for electronics
+    else if (normalizedInput.includes('phone') || 
+             normalizedInput.includes('laptop') || 
+             normalizedInput.includes('computer') || 
+             normalizedInput.includes('tv') || 
+             normalizedInput.includes('headphone')) {
+      categoryType = 'electronics';
+    }
+    // Check for outdoor/sports products
+    else if (normalizedInput.includes('snowboard') || 
+             normalizedInput.includes('ski') || 
+             normalizedInput.includes('bike') || 
+             normalizedInput.includes('camp') || 
+             normalizedInput.includes('hike') || 
+             normalizedInput.includes('fish')) {
+      categoryType = 'outdoor';
+    }
+    // Check for appliance products
+    else if (normalizedInput.includes('appliance') || 
+             normalizedInput.includes('fridge') || 
+             normalizedInput.includes('oven') || 
+             normalizedInput.includes('washer') || 
+             normalizedInput.includes('dryer')) {
+      categoryType = 'appliances';
+    }
+    // Check for furniture/home products
+    else if (normalizedInput.includes('furniture') || 
+             normalizedInput.includes('sofa') || 
+             normalizedInput.includes('bed') || 
+             normalizedInput.includes('chair') || 
+             normalizedInput.includes('table')) {
+      categoryType = 'home';
+    }
+    // Check for tools
+    else if (normalizedInput.includes('tool') || 
+             normalizedInput.includes('drill') || 
+             normalizedInput.includes('saw') || 
+             normalizedInput.includes('hammer')) {
+      categoryType = 'tools';
+    }
+    
+    // Add more targeted terms based on the identified category
+    if (categoryType) {
+      const categorySpecificTerms = categoryKeywords[categoryType];
+      
+      // Add the top 10 most relevant category terms that aren't already in our list
+      for (let i = 0; i < categorySpecificTerms.length && i < 20; i++) {
+        const term = categorySpecificTerms[i];
+        if (!terms.includes(term)) {
+          terms.push(term);
+        }
+      }
+      
+      // If this is a water treatment product, add special handling
+      if (categoryType === 'waterTreatment') {
         // Add specific water treatment terms in order of relevance
         if (normalizedInput.includes('softener')) {
           terms.unshift('water softener'); // Add to front of array if it's specifically a softener
@@ -566,12 +1176,6 @@ export class DataForSEOService {
           // Generic water treatment terms
           terms.unshift('water treatment system');
         }
-        
-        // Add additional water-related terms if not already in the list
-        if (!terms.includes('water softener')) terms.push('water softener');
-        if (!terms.includes('water filter')) terms.push('water filter');
-        if (!terms.includes('water treatment')) terms.push('water treatment');
-        if (!terms.includes('water purification')) terms.push('water purification');
         
         // Add salt free specific terms if applicable
         if (normalizedInput.includes('salt free') || normalizedInput.includes('saltfree')) {
@@ -589,11 +1193,76 @@ export class DataForSEOService {
           if (!terms.includes('well water treatment')) terms.push('well water treatment');
           if (!terms.includes('well water filter')) terms.push('well water filter');
         }
-      } else if (normalizedInput.includes('jacket') || normalizedInput.includes('coat')) {
-        terms.push('jacket', 'winter coat', 'outerwear');
-      } else {
-        // Add common product categories as fallbacks
-        terms.push('product review', 'buying guide');
+      }
+      
+      // If this is a clothing product, add special handling
+      else if (categoryType === 'clothing') {
+        if (normalizedInput.includes('jacket')) {
+          if (!terms.includes('winter jacket')) terms.push('winter jacket');
+          if (!terms.includes('rain jacket')) terms.push('rain jacket');
+          if (!terms.includes('jacket styles')) terms.push('jacket styles');
+        }
+        if (normalizedInput.includes('shoe') || normalizedInput.includes('boot')) {
+          if (!terms.includes('shoe sizing')) terms.push('shoe sizing');
+          if (!terms.includes('comfortable shoes')) terms.push('comfortable shoes');
+        }
+      }
+      
+      // For electronics, add specific terms
+      else if (categoryType === 'electronics') {
+        if (!terms.includes('tech review')) terms.push('tech review');
+        if (!terms.includes('electronics guide')) terms.push('electronics guide');
+        if (!terms.includes('gadget review')) terms.push('gadget review');
+      }
+      
+      // For outdoor category
+      else if (categoryType === 'outdoor') {
+        if (normalizedInput.includes('snowboard')) {
+          if (!terms.includes('snowboard')) terms.unshift('snowboard');
+          if (!terms.includes('snowboarding')) terms.push('snowboarding');
+          if (!terms.includes('winter sports')) terms.push('winter sports');
+        }
+        if (!terms.includes('outdoor gear')) terms.push('outdoor gear');
+        if (!terms.includes('outdoor activities')) terms.push('outdoor activities');
+      }
+    } else {
+      // For products we couldn't categorize, extract key terms
+      if (words.length >= 2) {
+        // Try to identify the main product category using the last 2 words
+        // This works well for many products like "Sony Noise Cancelling Headphones"
+        const lastTwoWords = `${words[words.length - 2]} ${words[words.length - 1]}`;
+        if (lastTwoWords.length > 5) {
+          terms.unshift(lastTwoWords);
+        } else {
+          // If just one word at the end, use it
+          terms.unshift(words[words.length - 1]);
+        }
+      }
+      
+      // Always add some general e-commerce terms for unknown categories
+      if (!terms.includes('product review')) terms.push('product review');
+      if (!terms.includes('buying guide')) terms.push('buying guide');
+      if (!terms.includes('comparison')) terms.push('comparison');
+      if (!terms.includes('best brands')) terms.push('best brands');
+    }
+    
+    // Create common combinations that generally perform well in search
+    if (terms.length > 0) {
+      const mainTerm = terms[0];
+      const combinations = [
+        `best ${mainTerm}`,
+        `${mainTerm} reviews`,
+        `${mainTerm} buying guide`,
+        `how to choose ${mainTerm}`,
+        `${mainTerm} comparison`,
+        `top rated ${mainTerm}`
+      ];
+      
+      // Add these combinations if they don't already exist
+      for (const combo of combinations) {
+        if (!terms.includes(combo)) {
+          terms.push(combo);
+        }
       }
     }
     
@@ -675,90 +1344,160 @@ export class DataForSEOService {
    * @param mainKeyword The main keyword to generate variations from
    * @returns Array of related keyword data
    */
-  private generateRelatedKeywords(mainKeyword: KeywordData): KeywordData[] {
-    console.log(`Generating related keywords based on: ${mainKeyword.keyword}`);
-    
-    // Create variations based on the main keyword
+  // Convert this to an async method so we can make API calls to get related keywords
+  // This change dramatically increases the number of keywords we can provide
+  private async generateRelatedKeywords(mainKeyword: KeywordData): Promise<KeywordData[]> {
+    // Get the base keyword
     const keyword = mainKeyword.keyword;
-    const terms = keyword.split(' ');
+    console.log(`Generating related keywords for: ${keyword}`);
     
-    // Create common variations
-    const variations = [
-      // Add question starters
-      `how to ${keyword}`,
-      `what is ${keyword}`,
-      `best ${keyword}`,
-      // Add long tail variations
-      `${keyword} for beginners`,
-      `${keyword} review`,
-      `${keyword} guide`,
-      `${keyword} vs ${terms.length > 1 ? terms[1] : 'alternative'}`,
-      `affordable ${keyword}`,
-      `${keyword} near me`,
-      `buy ${keyword}`,
-      `${keyword} price`,
-      `top ${keyword} brands`,
-      `${keyword} features`,
-      `${keyword} tips`
-    ];
-    
-    // Ensure we have valid metrics to work with (otherwise use reasonable defaults)
-    const baseSearchVolume = mainKeyword.searchVolume || 5000;
-    const baseCompetition = mainKeyword.competition || 0.5;
-    const baseCpc = mainKeyword.cpc || 1.5;
-    
-    // Generate placeholder trend data if missing
-    const baseTrend = mainKeyword.trend || Array(12).fill(0).map(() => 
-      Math.floor(baseSearchVolume * 0.7 + Math.random() * baseSearchVolume * 0.6)
-    );
-    
-    // Generate related keywords with metrics based on main keyword
-    return variations.map(variationText => {
-      // Derive metrics based on the main keyword with some variation
-      const multiplier = 0.1 + Math.random() * 0.9; // 10% to 100% of main metrics
-      const searchVolume = Math.round(baseSearchVolume * multiplier);
+    // For related keywords, we'll make direct API calls using DataForSEO
+    // We'll use a different endpoint to get a different set of keywords
+    try {
+      // First, try to use the related_keywords endpoint which should return complementary keywords
+      console.log(`Making DataForSEO API call for related keywords`);
       
-      // Vary competition based on intent
-      let competition = baseCompetition;
-      if (variationText.includes('how to') || variationText.includes('guide')) {
-        competition = Math.min(0.8, competition); // Informational tends to be less competitive
-      } else if (variationText.includes('buy') || variationText.includes('price')) {
-        competition = Math.min(1, competition * 1.2); // Transactional tends to be more competitive
-      }
-      
-      const competitionLevel = this.getCompetitionLevel(competition);
-      
-      // Vary CPC based on intent
-      let cpc = baseCpc;
-      if (variationText.includes('buy') || variationText.includes('price')) {
-        cpc = cpc * (1 + Math.random() * 0.5); // Higher CPC for transactional
-      }
-      
-      // Create trend data that follows the main keyword pattern with some variation
-      const trend = baseTrend.map(value => {
-        const variation = 0.7 + Math.random() * 0.6; // 70% to 130% of original value
-        return Math.round(value * variation * multiplier);
-      });
-      
-      // Calculate difficulty
-      const difficulty = this.calculateKeywordDifficulty({
-        search_volume: searchVolume,
-        competition: competition,
-        cpc: cpc
-      });
-      
-      return {
-        keyword: variationText,
-        searchVolume,
-        cpc,
-        competition,
-        competitionLevel,
-        intent: this.determineIntent({ keyword: variationText }),
-        trend,
-        difficulty,
-        selected: false
+      // Set up auth for API call
+      const auth = {
+        username: this.username,
+        password: this.password
       };
-    });
+      
+      // Use a different endpoint to get diverse results
+      const requestData = [{
+        keyword: keyword,
+        language_code: "en",
+        location_code: 2840, // United States
+        limit: 200 // Get up to 200 results
+      }];
+      
+      // Call the related_keywords endpoint which returns different associated terms
+      const response = await axios.post(
+        `${this.apiUrl}/v3/keywords_data/google/related_keywords/live`,
+        requestData,
+        { 
+          auth,
+          timeout: 15000,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+      
+      // Process the response
+      if (response.data?.tasks?.[0]?.result?.[0]?.keywords) {
+        const relatedKeywords = response.data.tasks[0].result[0].keywords;
+        console.log(`Got ${relatedKeywords.length} related keywords from API`);
+        
+        // Convert the related keywords into our standard KeywordData format
+        const keywordData: KeywordData[] = [];
+        
+        for (const relatedKeyword of relatedKeywords) {
+          const keywordText = relatedKeyword.keyword || '';
+          
+          // The related_keywords endpoint has a different structure
+          // We need to handle the different properties it returns
+          const searchVolume = relatedKeyword.keyword_properties?.search_volume || 0;
+          const competition = relatedKeyword.keyword_properties?.competition || 0;
+          const cpc = relatedKeyword.keyword_properties?.cpc || 0;
+          
+          // Build the keyword data
+          keywordData.push({
+            keyword: keywordText,
+            searchVolume,
+            cpc,
+            competition,
+            competitionLevel: this.getCompetitionLevel(competition),
+            intent: this.determineIntent({ keyword: keywordText }),
+            trend: Array(12).fill(Math.round(searchVolume / 12)), // Distribute volume evenly as trends aren't available
+            difficulty: this.calculateKeywordDifficulty({
+              search_volume: searchVolume,
+              competition,
+              cpc
+            }),
+            selected: false
+          });
+        }
+        
+        // If the related keywords API returned data, use it
+        if (keywordData.length > 0) {
+          console.log(`Successfully generated ${keywordData.length} related keywords`);
+          return keywordData;
+        }
+      }
+      
+      // If the related keywords endpoint didn't return data, try the keyword_suggestions endpoint
+      console.log(`Related keywords endpoint failed, trying keyword_suggestions endpoint`);
+      
+      const suggestionsRequestData = [{
+        keyword: keyword,
+        language_code: "en", 
+        location_code: 2840,
+        limit: 200
+      }];
+      
+      const suggestionsResponse = await axios.post(
+        `${this.apiUrl}/v3/keywords_data/google/keyword_suggestions/live`,
+        suggestionsRequestData,
+        { 
+          auth, 
+          timeout: 15000,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+      
+      if (suggestionsResponse.data?.tasks?.[0]?.result) {
+        const suggestions = suggestionsResponse.data.tasks[0].result;
+        console.log(`Got ${suggestions.length} keyword suggestions from API`);
+        
+        // Convert the suggestions into our standard KeywordData format
+        const keywordData: KeywordData[] = [];
+        
+        for (const suggestion of suggestions) {
+          // The keyword_suggestions endpoint has a different data structure
+          // Make sure we're extracting the right fields
+          keywordData.push({
+            keyword: suggestion.keyword || '',
+            searchVolume: suggestion.search_volume || 0,
+            cpc: suggestion.cpc || 0,
+            competition: suggestion.competition_index || 0,
+            competitionLevel: this.getCompetitionLevel(suggestion.competition_index || 0),
+            intent: this.determineIntent({ keyword: suggestion.keyword || '' }),
+            trend: Array(12).fill(Math.round((suggestion.search_volume || 0) / 12)),
+            difficulty: this.calculateKeywordDifficulty({
+              search_volume: suggestion.search_volume || 0,
+              competition: suggestion.competition_index || 0,
+              cpc: suggestion.cpc || 0
+            }),
+            selected: false
+          });
+        }
+        
+        // If the suggestions API returned data, use it
+        if (keywordData.length > 0) {
+          console.log(`Successfully generated ${keywordData.length} keyword suggestions`);
+          return keywordData;
+        }
+      }
+      
+      // If both API calls failed, then fall back to minimal placeholder
+      console.log(`Both related keywords and keyword suggestions APIs failed to return data`);
+    } catch (err: any) {
+      console.error(`Error generating related keywords: ${err.message}`);
+    }
+    
+    // If all API calls fail, return a minimal placeholder that clearly indicates API failure
+    return [
+      {
+        keyword: `${keyword} (API lookup required)`,
+        searchVolume: 0,
+        cpc: 0,
+        competition: 0,
+        competitionLevel: "Low",
+        intent: "Informational",
+        trend: Array(12).fill(0),
+        difficulty: 0,
+        selected: false
+      }
+    ];
   }
 
   /**
@@ -767,59 +1506,50 @@ export class DataForSEOService {
    * @param input The keyword/topic to generate fallback data for
    * @returns Array of simulated keyword data
    */
+  /**
+   * Minimal fallback method - ONLY used when DataForSEO completely fails
+   * We now try to avoid using fallback data and instead make multiple API attempts
+   */
   private generateFallbackKeywords(input: string): KeywordData[] {
-    console.log("Generating fallback keywords for:", input);
+    console.error(`Critical: DataForSEO failed to return any keywords for "${input}"`);
+    console.error(`This should not happen if API credentials are valid. Please check your DataForSEO connection and credentials.`);
     
-    // Create variations of the keyword
-    const terms = input.split(' ');
-    const baseKeywords = [
-      // Exact match
-      input,
-      // Add question starters
-      `how to ${input}`,
-      `what is ${input}`,
-      `best ${input}`,
-      // Add long tail variations
-      `${input} for beginners`,
-      `${input} review`,
-      `${input} guide`,
-      `${input} vs ${terms.length > 1 ? terms[1] : 'alternative'}`,
-      `affordable ${input}`,
-      `${input} near me`,
-      `buy ${input}`,
-      `${input} price`,
-      `top ${input} brands`,
-      `${input} features`,
-      `${input} tips`
-    ];
+    // We will attempt to use simpler, more generic versions of the input term
+    // to query DataForSEO again instead of generating fake data
+    const simplifiedTerms = this.extractGenericTerms(input);
     
-    // Generate some fallback data with randomized metrics
-    return baseKeywords.map(keyword => {
-      // Generate random but somewhat reasonable metrics
-      const searchVolume = Math.floor(Math.random() * 9000) + 1000;
-      const competition = Math.random();
-      const competitionLevel = this.getCompetitionLevel(competition);
-      const cpc = (Math.random() * 4) + 0.5;
-      const difficulty = Math.floor(Math.random() * 80) + 10;
-      
-      // Determine intent based on keyword pattern
-      const intent = this.determineIntent({ keyword });
-      
-      // Generate random trend data (12 months)
-      const trend = Array.from({ length: 12 }, () => Math.floor(Math.random() * searchVolume * 1.5));
-      
-      return {
-        keyword,
-        searchVolume,
-        cpc,
-        competition,
-        competitionLevel,
-        intent,
-        trend,
-        difficulty,
+    // Return just the input keyword with zero metrics to indicate API failure
+    // This helps us identify when we need to fix the API connection
+    const result: KeywordData[] = [{
+      keyword: input,
+      searchVolume: 0,
+      cpc: 0,
+      competition: 0,
+      competitionLevel: "Low",
+      intent: "Navigational",
+      trend: Array(12).fill(0),
+      difficulty: 0,
+      selected: false
+    }];
+    
+    // Add a few generic keywords ONLY for UI display purposes
+    if (simplifiedTerms.length > 0) {
+      // Add just the first generic term with a flag showing it's a suggested term
+      const genericKeyword = simplifiedTerms[0];
+      result.push({
+        keyword: `Try API search for: ${genericKeyword}`,
+        searchVolume: 0,
+        cpc: 0,
+        competition: 0,
+        competitionLevel: "Low",
+        intent: "Informational",
+        trend: Array(12).fill(0),
+        difficulty: 0,
         selected: false
-      };
-    });
+      });
+    }
+    
+    return result;
   }
 
   /**

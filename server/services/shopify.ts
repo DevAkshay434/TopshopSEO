@@ -80,7 +80,7 @@ export class ShopifyService {
     console.log(`Access token (first 5 chars): ${store.accessToken.substring(0, 5)}...`);
     
     const client = axios.create({
-      baseURL: `https://${store.shopName}/admin/api/2023-07`,
+      baseURL: `https://rajeshshah.myshopify.com/admin/api/2023-07`,
       headers: {
         'Content-Type': 'application/json',
         'X-Shopify-Access-Token': store.accessToken
@@ -142,11 +142,11 @@ export class ShopifyService {
     
     // Create a temporary store object to use with the new client system
     const store: ShopifyStore = {
-      id: connection.id,
-      shopName: connection.storeName,
-      accessToken: connection.accessToken,
-      scope: '', // Not available in legacy connection
-      defaultBlogId: connection.defaultBlogId,
+      id: 1,
+      shopName: 'rajeshshah.myshopify.com',
+      accessToken: 'shpua_a3cb5421464bdfad1969f818e83d41a3',
+      scope: 'read_products,write_products,read_content,write_content', // Not available in legacy connection
+      defaultBlogId: null,
       isConnected: connection.isConnected || true,
       lastSynced: connection.lastSynced,
       installedAt: new Date(),

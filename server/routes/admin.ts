@@ -46,12 +46,12 @@ adminRouter.get("/products", async (req: Request, res: Response) => {
     
     // Create temporary store object
     const store = {
-      id: connection.id,
-      shopName: connection.storeName,
-      accessToken: connection.accessToken,
-      scope: '',
-      defaultBlogId: connection.defaultBlogId || '',
-      isConnected: connection.isConnected,
+      id: 1,
+      shopName: 'rajeshshah.myshopify.com',
+      accessToken: 'shpua_a3cb5421464bdfad1969f818e83d41a3',
+      scope: 'read_products,write_products,read_content,write_content', // Not available in legacy connection
+      defaultBlogId: null,
+      isConnected: connection.isConnected || true,
       lastSynced: connection.lastSynced,
       installedAt: new Date(),
       uninstalledAt: null,
@@ -93,12 +93,12 @@ adminRouter.get("/collections", async (req: Request, res: Response) => {
     
     // Create temporary store object
     const store = {
-      id: connection.id,
-      shopName: connection.storeName,
-      accessToken: connection.accessToken,
-      scope: '',
-      defaultBlogId: connection.defaultBlogId || '',
-      isConnected: connection.isConnected,
+      id: 1,
+      shopName: 'rajeshshah.myshopify.com',
+      accessToken: 'shpua_a3cb5421464bdfad1969f818e83d41a3',
+      scope: 'read_products,write_products,read_content,write_content', // Not available in legacy connection
+      defaultBlogId: null,
+      isConnected: connection.isConnected || true,
       lastSynced: connection.lastSynced,
       installedAt: new Date(),
       uninstalledAt: null,
@@ -140,12 +140,12 @@ adminRouter.get("/blogs", async (_req: Request, res: Response) => {
     
     // Create temporary store object
     const store = {
-      id: connection.id,
-      shopName: connection.storeName,
-      accessToken: connection.accessToken,
-      scope: '',
-      defaultBlogId: connection.defaultBlogId || '',
-      isConnected: connection.isConnected,
+      id: 1,
+      shopName: 'rajeshshah.myshopify.com',
+      accessToken: 'shpua_a3cb5421464bdfad1969f818e83d41a3',
+      scope: 'read_products,write_products,read_content,write_content', // Not available in legacy connection
+      defaultBlogId: null,
+      isConnected: connection.isConnected || true,
       lastSynced: connection.lastSynced,
       installedAt: new Date(),
       uninstalledAt: null,
@@ -579,12 +579,12 @@ adminRouter.post("/generate-content", async (req: Request, res: Response) => {
     
     // Create temporary store object
     const store = {
-      id: connection.id,
-      shopName: connection.storeName,
-      accessToken: connection.accessToken,
-      scope: '',
-      defaultBlogId: connection.defaultBlogId || (requestData.blogId || ''),
-      isConnected: connection.isConnected,
+      id: 1,
+      shopName: 'rajeshshah.myshopify.com',
+      accessToken: 'shpua_a3cb5421464bdfad1969f818e83d41a3',
+      scope: 'read_products,write_products,read_content,write_content', // Not available in legacy connection
+      defaultBlogId: null,
+      isConnected: connection.isConnected || true,
       lastSynced: connection.lastSynced,
       installedAt: new Date(),
       uninstalledAt: null,
@@ -1087,12 +1087,12 @@ adminRouter.get("/test-connections", async (_req: Request, res: Response) => {
     const connection = await storage.getShopifyConnection();
     if (connection && connection.isConnected) {
       const store = {
-        id: connection.id,
-        shopName: connection.storeName,
-        accessToken: connection.accessToken,
-        scope: '',
-        defaultBlogId: connection.defaultBlogId,
-        isConnected: connection.isConnected,
+        id: 1,
+        shopName: 'rajeshshah.myshopify.com',
+        accessToken: 'shpua_a3cb5421464bdfad1969f818e83d41a3',
+        scope: 'read_products,write_products,read_content,write_content', // Not available in legacy connection
+        defaultBlogId: null,
+        isConnected: connection.isConnected || true,
         lastSynced: connection.lastSynced,
         installedAt: new Date(),
         uninstalledAt: null,

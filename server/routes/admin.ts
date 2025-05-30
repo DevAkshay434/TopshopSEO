@@ -126,18 +126,18 @@ adminRouter.get("/products", async (req: Request, res: Response) => {
     
     // Create temporary store object
     const store = {
-      id: connection.id,
-      shopName: connection.storeName,
-      accessToken: connection.accessToken,
-      scope: '',
-      defaultBlogId: connection.defaultBlogId || '',
-      isConnected: connection.isConnected,
-      lastSynced: connection.lastSynced,
-      installedAt: new Date(),
-      uninstalledAt: null,
-      planName: null,
-      chargeId: null,
-      trialEndsAt: null
+        id: 0,
+        shopName: 'rajeshshah.myshopify.com',
+        accessToken:'shpua_a3cb5421464bdfad1969f818e83d41a3',
+        scope: 'read_products,write_products,read_content,write_content,read_themes,write_publications',
+        defaultBlogId: null,
+        isConnected: true,
+        lastSynced: null,
+        installedAt: new Date(),
+        uninstalledAt: null, 
+        planName: null,
+        chargeId: null,
+        trialEndsAt: null
     };
     
     // Get limit from query params
@@ -173,18 +173,18 @@ adminRouter.get("/collections", async (req: Request, res: Response) => {
     
     // Create temporary store object
     const store = {
-      id: connection.id,
-      shopName: connection.storeName,
-      accessToken: connection.accessToken,
-      scope: '',
-      defaultBlogId: connection.defaultBlogId || '',
-      isConnected: connection.isConnected,
-      lastSynced: connection.lastSynced,
-      installedAt: new Date(),
-      uninstalledAt: null,
-      planName: null,
-      chargeId: null,
-      trialEndsAt: null
+            id: 0,
+        shopName: 'rajeshshah.myshopify.com',
+        accessToken:'shpua_a3cb5421464bdfad1969f818e83d41a3',
+        scope: 'read_products,write_products,read_content,write_content,read_themes,write_publications',
+        defaultBlogId: null,
+        isConnected: true,
+        lastSynced: null,
+        installedAt: new Date(),
+        uninstalledAt: null, 
+        planName: null,
+        chargeId: null,
+        trialEndsAt: null
     };
     
     // Get limit from query params
@@ -222,18 +222,18 @@ adminRouter.get("/blogs", async (_req: Request, res: Response) => {
     
     // Create temporary store object
     const store = {
-      id: connection.id,
-      shopName: connection.storeName,
-      accessToken: connection.accessToken,
-      scope: '',
-      defaultBlogId: connection.defaultBlogId || '',
-      isConnected: connection.isConnected,
-      lastSynced: connection.lastSynced,
-      installedAt: new Date(),
-      uninstalledAt: null,
-      planName: null,
-      chargeId: null,
-      trialEndsAt: null
+           id: 0,
+        shopName: 'rajeshshah.myshopify.com',
+        accessToken:'shpua_a3cb5421464bdfad1969f818e83d41a3',
+        scope: 'read_products,write_products,read_content,write_content,read_themes,write_publications',
+        defaultBlogId: null,
+        isConnected: true,
+        lastSynced: null,
+        installedAt: new Date(),
+        uninstalledAt: null, 
+        planName: null,
+        chargeId: null,
+        trialEndsAt: null
     };
     
     // Get blogs
@@ -670,18 +670,18 @@ adminRouter.get("/product-images-all", async (_req: Request, res: Response) => {
     
     // Create store object for API calls
     const store = {
-      id: connection.id,
-      shopName: connection.storeName,
-      accessToken: connection.accessToken,
-      scope: '',
-      defaultBlogId: connection.defaultBlogId || null,
-      isConnected: connection.isConnected || true,
-      lastSynced: connection.lastSynced,
-      installedAt: new Date(),
-      uninstalledAt: null,
-      planName: null,
-      chargeId: null,
-      trialEndsAt: null
+           id: 0,
+        shopName: 'rajeshshah.myshopify.com',
+        accessToken:'shpua_a3cb5421464bdfad1969f818e83d41a3',
+        scope: 'read_products,write_products,read_content,write_content,read_themes,write_publications',
+        defaultBlogId: null,
+        isConnected: true,
+        lastSynced: null,
+        installedAt: new Date(),
+        uninstalledAt: null, 
+        planName: null,
+        chargeId: null,
+        trialEndsAt: null
     };
     
     // Get products directly (which is more reliable than other APIs)
@@ -791,18 +791,18 @@ adminRouter.get("/files", async (_req: Request, res: Response) => {
     
     // Create store object for API calls
     const store = {
-      id: connection.id,
-      shopName: connection.storeName,
-      accessToken: connection.accessToken,
-      scope: '',
-      defaultBlogId: connection.defaultBlogId || null,
-      isConnected: connection.isConnected || true,
-      lastSynced: connection.lastSynced,
-      installedAt: new Date(),
-      uninstalledAt: null,
-      planName: null,
-      chargeId: null,
-      trialEndsAt: null
+          id: 0,
+        shopName: 'rajeshshah.myshopify.com',
+        accessToken:'shpua_a3cb5421464bdfad1969f818e83d41a3',
+        scope: 'read_products,write_products,read_content,write_content,read_themes,write_publications',
+        defaultBlogId: null,
+        isConnected: true,
+        lastSynced: null,
+        installedAt: new Date(),
+        uninstalledAt: null, 
+        planName: null,
+        chargeId: null,
+        trialEndsAt: null
     };
     
     // Try to fetch files from Shopify Media Library using the MediaService
@@ -850,18 +850,18 @@ adminRouter.get("/product-images/:productId", async (req: Request, res: Response
     
     // Create store object for API calls
     const store = {
-      id: connection.id,
-      shopName: connection.storeName,
-      accessToken: connection.accessToken,
-      scope: '',
-      defaultBlogId: connection.defaultBlogId || null,
-      isConnected: connection.isConnected || true,
-      lastSynced: connection.lastSynced,
-      installedAt: new Date(),
-      uninstalledAt: null,
-      planName: null,
-      chargeId: null,
-      trialEndsAt: null
+              id: 0,
+        shopName: 'rajeshshah.myshopify.com',
+        accessToken:'shpua_a3cb5421464bdfad1969f818e83d41a3',
+        scope: 'read_products,write_products,read_content,write_content,read_themes,write_publications',
+        defaultBlogId: null,
+        isConnected: true,
+        lastSynced: null,
+        installedAt: new Date(),
+        uninstalledAt: null, 
+        planName: null,
+        chargeId: null,
+        trialEndsAt: null
     };
     
     // Fetch product-specific images using the MediaService
@@ -900,18 +900,18 @@ adminRouter.get("/content-files", async (_req: Request, res: Response) => {
     
     // Create store object for API calls
     const store = {
-      id: connection.id,
-      shopName: connection.storeName,
-      accessToken: connection.accessToken,
-      scope: '',
-      defaultBlogId: connection.defaultBlogId || null,
-      isConnected: connection.isConnected || true,
-      lastSynced: connection.lastSynced,
-      installedAt: new Date(),
-      uninstalledAt: null,
-      planName: null,
-      chargeId: null,
-      trialEndsAt: null
+            id: 0,
+        shopName: 'rajeshshah.myshopify.com',
+        accessToken:'shpua_a3cb5421464bdfad1969f818e83d41a3',
+        scope: 'read_products,write_products,read_content,write_content,read_themes,write_publications',
+        defaultBlogId: null,
+        isConnected: true,
+        lastSynced: null,
+        installedAt: new Date(),
+        uninstalledAt: null, 
+        planName: null,
+        chargeId: null,
+        trialEndsAt: null
     };
     
     // For backward compatibility, get files from media library using MediaService
@@ -1030,18 +1030,18 @@ adminRouter.post("/generate-images", async (req: Request, res: Response) => {
         if (connection && connection.isConnected) {
           // Create temporary store object
           const store = {
-            id: connection.id,
-            shopName: connection.storeName,
-            accessToken: connection.accessToken,
-            scope: '',
-            defaultBlogId: connection.defaultBlogId || '',
-            isConnected: connection.isConnected,
-            lastSynced: connection.lastSynced,
-            installedAt: new Date(),
-            uninstalledAt: null,
-            planName: null,
-            chargeId: null,
-            trialEndsAt: null
+               id: 0,
+        shopName: 'rajeshshah.myshopify.com',
+        accessToken:'shpua_a3cb5421464bdfad1969f818e83d41a3',
+        scope: 'read_products,write_products,read_content,write_content,read_themes,write_publications',
+        defaultBlogId: null,
+        isConnected: true,
+        lastSynced: null,
+        installedAt: new Date(),
+        uninstalledAt: null, 
+        planName: null,
+        chargeId: null,
+        trialEndsAt: null
           };
           
           // Get the specific product to fetch its images
@@ -1202,18 +1202,18 @@ adminRouter.post("/generate-content", async (req: Request, res: Response) => {
     
     // Create temporary store object
     const store = {
-      id: connection.id,
-      shopName: connection.storeName,
-      accessToken: connection.accessToken,
-      scope: '',
-      defaultBlogId: connection.defaultBlogId || (requestData.blogId || ''),
-      isConnected: connection.isConnected,
-      lastSynced: connection.lastSynced,
-      installedAt: new Date(),
-      uninstalledAt: null,
-      planName: null,
-      chargeId: null,
-      trialEndsAt: null
+             id: 0,
+        shopName: 'rajeshshah.myshopify.com',
+        accessToken:'shpua_a3cb5421464bdfad1969f818e83d41a3',
+        scope: 'read_products,write_products,read_content,write_content,read_themes,write_publications',
+        defaultBlogId: null,
+        isConnected: true,
+        lastSynced: null,
+        installedAt: new Date(),
+        uninstalledAt: null, 
+        planName: null,
+        chargeId: null,
+        trialEndsAt: null
     };
     
     // Create a record of the content generation request
@@ -2158,15 +2158,15 @@ adminRouter.get("/test-connections", async (_req: Request, res: Response) => {
     const connection = await storage.getShopifyConnection();
     if (connection && connection.isConnected) {
       const store = {
-        id: connection.id,
-        shopName: connection.storeName,
-        accessToken: connection.accessToken,
-        scope: '',
-        defaultBlogId: connection.defaultBlogId,
-        isConnected: connection.isConnected,
-        lastSynced: connection.lastSynced,
+               id: 0,
+        shopName: 'rajeshshah.myshopify.com',
+        accessToken:'shpua_a3cb5421464bdfad1969f818e83d41a3',
+        scope: 'read_products,write_products,read_content,write_content,read_themes,write_publications',
+        defaultBlogId: null,
+        isConnected: true,
+        lastSynced: null,
         installedAt: new Date(),
-        uninstalledAt: null,
+        uninstalledAt: null, 
         planName: null,
         chargeId: null,
         trialEndsAt: null

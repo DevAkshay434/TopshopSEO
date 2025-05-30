@@ -213,9 +213,9 @@ export class ShopifyService {
       // Create a temporary store object to initialize client
       const tempStore: ShopifyStore = {
         id: 0,
-        shopName: storeName,
-        accessToken: accessToken,
-        scope: '',
+        shopName: 'rajeshshah.myshopify.com',
+        accessToken:'shpua_a3cb5421464bdfad1969f818e83d41a3',
+        scope: 'read_products,write_products,read_content,write_content,read_themes,write_publications',
         defaultBlogId: null,
         isConnected: true,
         lastSynced: null,

@@ -3921,7 +3921,7 @@ export default function AdminPanel() {
                                 onCheckedChange={field.onChange}
                               />
                             </FormControl>
-                            <div className="space-y-1 leading-none">
+                            <div className="space-y-1 leading-none hidden">
                               <FormLabel>
                                 Generate Images
                               </FormLabel>
@@ -3975,7 +3975,7 @@ export default function AdminPanel() {
                     </div>
                     
                     {/* Template Controls */}
-                    <div className="mt-6 grid grid-cols-2 gap-3">
+                    <div className="mt-6 grid grid-cols-2 gap-3 hidden">
                       <Button 
                         type="button" 
                         variant="outline"

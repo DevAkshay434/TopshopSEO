@@ -4700,7 +4700,7 @@ export default function AdminPanel() {
                         <h2 className="text-2xl font-bold text-gray-900 mb-3 text-center">
                           Choose Media
                         </h2>
-                        <p className="text-sm text-blue-600">
+                        <p className="text-sm text-center text-blue-600">
                           Select compelling visuals to enhance your content and
                           boost engagement
                         </p>
@@ -5221,7 +5221,7 @@ export default function AdminPanel() {
                       <h2 className="text-2xl font-bold text-gray-900 mb-3 text-center">
                         Choose Author
                       </h2>
-                      <p className="text-sm text-blue-600">
+                      <p className="text-sm text-center text-blue-600">
                         Select an author for this content or create a new one
                       </p>
                     </div>
@@ -5302,7 +5302,7 @@ export default function AdminPanel() {
                       <h2 className="text-2xl font-bold text-gray-900 mb-3 text-center">
                         Style & Formatting
                       </h2>
-                      <p className="text-sm text-blue-600">
+                      <p className="text-sm text-center text-blue-600">
                         Customize how your content will look and feel
                       </p>
                     </div>

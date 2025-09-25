@@ -3052,7 +3052,7 @@ Return ONLY a valid JSON object with "metaTitle" and "metaDescription" fields. N
       }
       
       // Import DataForSEO service
-      const { DataForSEOService } = await import('./services/dataforseo');
+      const { DataForSEOService } = await import('./services/dataForSEO');
       const dataForSEOService = new DataForSEOService();
       
       // Build search terms from products and collections

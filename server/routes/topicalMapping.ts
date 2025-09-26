@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { storage } from "../storage";
-import { dataForSEOService } from "../services/dataForSEO";
+import { dataForSEOService } from "../services/dataforseo";
 import { insertTopicalMappingSessionSchema, insertRelatedKeywordSchema, insertGeneratedTitleSchema } from "@shared/schema";
 import { generateBlogContentWithClaude } from "../services/claude";
 
